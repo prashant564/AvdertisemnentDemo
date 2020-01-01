@@ -9,17 +9,18 @@ import com.google.android.gms.ads.formats.MediaView
 import com.google.android.gms.ads.formats.NativeAdOptions
 import com.google.android.gms.ads.formats.UnifiedNativeAd
 import com.google.android.gms.ads.formats.UnifiedNativeAdView
-import kotlinx.android.synthetic.main.activity_native_video_ad.*
+import kotlinx.android.synthetic.main.activity_native_advanced_ad.*
 import java.util.*
 
-class NativeVideoAdActivity : AppCompatActivity() {
+const val ADMOB_AD_UNIT_ID = "ca-app-pub-3940256099942544/2247696110"
+var currentNativeAd: UnifiedNativeAd? = null
 
-    val ADMOB_AD_UNIT_ID = "ca-app-pub-3940256099942544/1044960115"
-    var currentNativeAd: UnifiedNativeAd? = null
+class NativeAdvancedAdActivity : AppCompatActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_native_video_ad)
-
+        setContentView(R.layout.activity_native_advanced_ad)
+        MobileAds.initialize(this) {}
         refresh_button.setOnClickListener { refreshAd() }
         refreshAd()
     }
@@ -29,8 +30,7 @@ class NativeVideoAdActivity : AppCompatActivity() {
         // otherwise you will have a memory leak.
         currentNativeAd?.destroy()
         currentNativeAd = nativeAd
-        // Set the media view. Media content will be automatically populated in the media view once
-        // adView.setNativeAd() is called.
+        // Set the media view.
         adView.mediaView = adView.findViewById<MediaView>(R.id.ad_media)
 
         // Set other ad assets.
@@ -43,8 +43,9 @@ class NativeVideoAdActivity : AppCompatActivity() {
         adView.storeView = adView.findViewById(R.id.ad_store)
         adView.advertiserView = adView.findViewById(R.id.ad_advertiser)
 
-        // The headline is guaranteed to be in every UnifiedNativeAd.
+        // The headline and media content are guaranteed to be in every UnifiedNativeAd.
         (adView.headlineView as TextView).text = nativeAd.headline
+        adView.mediaView.setMediaContent(nativeAd.mediaContent)
 
         // These assets aren't guaranteed to be in every UnifiedNativeAd, so it's important to
         // check before trying to display them.
@@ -99,8 +100,7 @@ class NativeVideoAdActivity : AppCompatActivity() {
         }
 
         // This method tells the Google Mobile Ads SDK that you have finished populating your
-        // native ad view with this native ad. The SDK will populate the adView's MediaView
-        // with the media content from this native ad.
+        // native ad view with this native ad.
         adView.setNativeAd(nativeAd)
 
         // Get the video controller for the ad. One will always be provided, even if the ad doesn't
@@ -109,8 +109,7 @@ class NativeVideoAdActivity : AppCompatActivity() {
 
         // Updates the UI to say whether or not this ad has a video asset.
         if (vc.hasVideoContent()) {
-            videostatus_text.text = String.format(
-                Locale.getDefault(),
+            videostatus_text.text = String.format(Locale.getDefault(),
                 "Video status: Ad contains a %.2f:1 video asset.",
                 vc.aspectRatio)
 
@@ -164,7 +163,7 @@ class NativeVideoAdActivity : AppCompatActivity() {
         val adLoader = builder.withAdListener(object : AdListener() {
             override fun onAdFailedToLoad(errorCode: Int) {
                 refresh_button.isEnabled = true
-                Toast.makeText(this@NativeVideoAdActivity, "Failed to load native ad:" + errorCode, Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@NativeAdvancedAdActivity, "Failed to load native ad: " + errorCode, Toast.LENGTH_SHORT).show()
             }
         }).build()
 
